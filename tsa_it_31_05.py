@@ -537,7 +537,7 @@ if __name__ == '__main__':
 
 	# try:
 	fmri_4D=nib.load(inputfile)
-	print(fmri_4D.header)
+	# print(fmri_4D.header)
 	header=fmri_4D.header
 	affine=fmri_4D.affine
 	shape_data=fmri_4D.get_fdata().shape
