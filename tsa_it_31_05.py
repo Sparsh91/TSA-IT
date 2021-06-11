@@ -21,7 +21,7 @@ def time_series(filename,mask):
 		# mask=nifti_masker.mask_img_
 		# masked_data=apply_mask(filename,mask)
 		img = nib.load(filename)
-		masked_data=img.get_fdata().reshape(img.shape[3],-1)
+		masked_data=((img.get_fdata()).moveaxis(-1,0)).reshape(img.shape[3],-1)
 		print("No mask, masked data shape ",masked_data.shape)
 
 
