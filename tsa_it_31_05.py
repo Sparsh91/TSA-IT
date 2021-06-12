@@ -22,7 +22,7 @@ def time_series(filename,mask):
 		# masked_data=apply_mask(filename,mask)
 		img = nib.load(filename)
 		masked_data=((img.get_fdata()).moveaxis(-1,0)).reshape(img.shape[3],-1)
-		print("No mask, masked data shape ",masked_data.shape)
+		print("Warning: No mask is provided, performing analysis on the entire brain \n")
 
 
 	elif type(mask)==str:
@@ -55,7 +55,7 @@ def trials_single(trial_file,n):
 	while line:
 		trial=line.split()
 		if len(trial) !=1 and len(trial)!=3:	
-			print("Error: ",trial_file," is neither in 1 column format nor 3 column format")	
+			print("Error: ",trial_file," is neither in 1-column format nor 3-column format")	
 			print(help_msg)	
 			sys.exit()
 		initial_trials.append(trial[0])
@@ -251,7 +251,7 @@ def save_files_1(p,q,z,t,mean,std_dev,pos,outfile,ext):
 	del q
 	z.to_filename(outfile+'/z_statistic'+ext)
 	del z
-	mean.to_filename(outfile+'/signal_change'+ext)
+	mean.to_filename(outfile+'/mean_signal_change'+ext)
 	del mean
 	std_dev.to_filename(outfile+'/standard_deviation'+ext)
 
@@ -282,7 +282,7 @@ def save_files_2(p,q,z,t,mean,std_dev,outfile,ext,shape,header,affine):
 	nib.save(z_img,outfile+'/z_statistic'+ext)
 	nib.save(q_img,outfile+'/q_statistic'+ext)
 	nib.save(p_img,outfile+'/p_statistic'+ext)
-	nib.save(mean_img,outfile+'/signal_change'+ext)
+	nib.save(mean_img,outfile+'/mean_signal_change'+ext)
 	nib.save(std_img,outfile+'/standard_deviation'+ext)
 
 	return
@@ -376,12 +376,20 @@ if __name__ == '__main__':
 		sys.exit()
 
 	if os.path.isfile(filename)==False:
-		print(filename," Error: The input file is not present at the specified path \n")
+		print(filename," Error: ",filename," does not exist \n")
 		print(help_msg)
+		sys.exit()
+	if trial_file!=None and len(volumes)!=0:
+		print("Error: -t and -x options cannot be used together \n")
 		sys.exit()
 
 	if file=="file" and len(volumes)!=0:
-		print("Error : -x option cannot be used along with -f option \n")
+		print("Error: -x option cannot be used along with -f option \n")
+		sys.exit()
+
+	if len(volumes)==0 and os.path.isfile(trial_file)==False:	
+		print(" Error: ",trial_file," does not exist \n")	
+		print(help_msg)	
 		sys.exit()
 
 	if mask!=None:
@@ -397,7 +405,7 @@ if __name__ == '__main__':
 
 	if(type(mask)==str):
 		if os.path.isfile(mask)==False:	
-			print("The mask file is not present at the specified path")	
+			print("The mask file does not exist")	
 			#print(help_msg)	
 			sys.exit()
 		else:
@@ -418,7 +426,7 @@ if __name__ == '__main__':
 			if len(x)!=4:	
 				sys.exit()
 		except:
-			print("Error: input file is not a functional file \n")	
+			print("Error: ",filename,"  is not a functional file \n")	
 			print(help_msg)	
 			sys.exit()	
 			
@@ -438,7 +446,7 @@ if __name__ == '__main__':
 					#print(y)
 					flag=1
 					if len(y)!=4:
-						print("Error: ",y," is not a functional file \n")	
+						print("Error: ",x," is not a functional file \n")	
 						print(help_msg)	
 						sys.exit()
 		
@@ -459,18 +467,9 @@ if __name__ == '__main__':
 			x=f.readline()
 		
 
-	if len(volumes)==0 and os.path.isfile(trial_file)==False:	
-		print(" Error: The trials file (EV file) is not present at the specified path \n")	
-		print(help_msg)	
-		sys.exit()
-
 
 	if start!=None and end!=None and start>=end:
 		print("Error: The start time must be smaller than the end time \n")
-		sys.exit()
-
-	if trial_file!=None and len(volumes)!=0:
-		print("Error: The option -t cannot be used along with the option -x \n")
 		sys.exit()
 	
 	if not os.path.exists(outfile):
@@ -509,13 +508,13 @@ if __name__ == '__main__':
 		while file:
 			affn=nib.load(file.split()[0]).affine
 			if affn.all()!=affine.all():
-				print("Error: Affines of images don't match \n")
+				print("Error: Affine of images don't match \n")
 				sys.exit()
 			file=files.readline()
 			
 		if type(mask)!=str:
 			mask=0
-			print("Threshold option for mask cannot be used along with -f option. Using the entire brain data for testing.")
+			print("Warning: Threshold option for mask cannot be used along with -f option. Using the entire brain data for testing.")
 		files=open(filename,"r")
 		file=files.readline()
 		n=0
@@ -623,4 +622,3 @@ if __name__ == '__main__':
 	# except:
 	# 	print(help_msg)
 	# 	sys.exit()
-
